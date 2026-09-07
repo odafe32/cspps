@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// CSPPS - Comprehensive Student Performance Prediction System
+// Prisma schema for PostgreSQL (Neon)
 
 generator client {
   provider = "prisma-client-js"
@@ -8,4 +8,157 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ── Users & Auth ──────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  LECTURER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  firstName    String
+  lastName     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student      Student?
+  lecturer     Lecturer?
+  admin        Admin?
+  notifications Notification[]
+  activityLogs ActivityLog[]
+
+  @@map("users")
+}
+
+// ── Students (Table 3.1) ──────────────────────────────────────
+
+model Student {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentNumber  String   @unique
+  dateOfBirth    DateTime?
+  enrollmentDate DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  performanceRecords PerformanceRecord[]
+  predictions        Prediction[]
+
+  @@map("students")
+}
+
+// ── Lecturers (Table 3.2) ─────────────────────────────────────
+
+model Lecturer {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("lecturers")
+}
+
+// ── Admins (Table 3.3) ────────────────────────────────────────
+
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ── Performance Records (Table 3.4) ───────────────────────────
+
+model PerformanceRecord {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  semester          String
+  gpa               Float    // 0.0 - 5.0 (Nigerian scale)
+  attendanceRate    Float    // 0 - 100
+  studyHours        Float    // hours per week
+  assignmentAverage Float?   // 0 - 100
+  testAverage       Float?   // 0 - 100
+  libraryVisits     Int?     // visits per semester
+  classParticipation Float?  // 0 - 10 rating
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  predictions Prediction[]
+
+  @@map("performance_records")
+}
+
+// ── Predictions (Table 3.5) ───────────────────────────────────
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Prediction {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  recordId        String?
+  record          PerformanceRecord? @relation(fields: [recordId], references: [id], onDelete: SetNull)
+  predictedGpa    Float
+  riskLevel       RiskLevel
+  modelUsed       String   @default("random_forest")
+  confidenceScore Float?
+  predictionDate  DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@map("predictions")
+}
+
+// ── Notifications ─────────────────────────────────────────────
+
+enum NotificationType {
+  HIGH_RISK
+  PERFORMANCE_DROP
+  PREDICTION_READY
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+// ── Activity Logs ─────────────────────────────────────────────
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  description String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@map("activity_logs")
 }
