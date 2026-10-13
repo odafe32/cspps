@@ -3,7 +3,7 @@
 A web-based predictive analytics platform for tertiary institutions that forecasts student academic performance (CGPA) and identifies at-risk students using machine learning. CSPPS moves academic monitoring from **reactive** grade tracking to **proactive**, data-informed intervention.
 
 > **Project Title:** Design and Implementation of a Comprehensive Students' Performance Prediction System (CSPPS)
-> **Implementation:** Godfrey Joseph
+> **Implementation:** MUHAMMAD GHAZALI JAMIL
 
 ---
 

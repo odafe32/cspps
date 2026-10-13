@@ -505,7 +505,7 @@ export default async function AdminDashboard() {
           <Shield className="h-6 w-6 text-muted-foreground" />
           <p className="text-sm font-medium">CSPPS — Comprehensive Student Performance Prediction System</p>
           <p className="text-xs text-muted-foreground">
-            Implementation: Godfrey Joseph · 5.0 GPA Scale · ONNX ML Engine
+            Implementation: MUHAMMAD GHAZALI JAMIL · 5.0 GPA Scale · ONNX ML Engine
           </p>
         </CardContent>
       </Card>

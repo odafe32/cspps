@@ -173,7 +173,7 @@ export default function AdminSettingsPage() {
           </div>
           <Separator />
           <p className="text-xs text-muted-foreground">
-            Implementation: Godfrey Joseph
+            Implementation: MUHAMMAD GHAZALI JAMIL
           </p>
         </CardContent>
       </Card>

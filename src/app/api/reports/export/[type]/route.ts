@@ -152,7 +152,7 @@ export async function GET(
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text(
-          "CSPPS — Comprehensive Student Performance Prediction System | Implementation: Godfrey Joseph",
+          "CSPPS — Comprehensive Student Performance Prediction System | Implementation: MUHAMMAD GHAZALI JAMIL",
           14,
           doc.internal.pageSize.height - 8
         );

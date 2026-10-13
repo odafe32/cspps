@@ -54,7 +54,7 @@ export default function StudentSettingsPage() {
             CSPPS — Comprehensive Student Performance Prediction System
           </p>
           <p className="text-xs text-muted-foreground">
-            Implementation: Godfrey Joseph
+            Implementation: MUHAMMAD GHAZALI JAMIL
           </p>
         </CardContent>
       </Card>
