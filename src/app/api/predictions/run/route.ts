@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getSession } from "@/lib/auth/session";
 import { runPrediction } from "@/lib/ml/inference";
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const session = await getSession();

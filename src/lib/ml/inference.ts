@@ -1,18 +1,41 @@
 import path from "path";
 import fs from "fs";
-import * as ort from "onnxruntime-node";
+import type * as ort from "onnxruntime-node";
 
 const MODELS_DIR = path.join(process.cwd(), "src", "lib", "ml", "models");
 
 let regressorSession: ort.InferenceSession | null = null;
 let classifierSession: ort.InferenceSession | null = null;
 
+// Lazy-load onnxruntime-node: the native binary may be unavailable in some
+// serverless environments, and a top-level import would crash the whole route.
+type OrtModule = typeof import("onnxruntime-node");
+let ortModule: OrtModule | null = null;
+let ortLoadFailed = false;
+
+async function getOrt(): Promise<OrtModule | null> {
+  if (ortModule) return ortModule;
+  if (ortLoadFailed) return null;
+
+  try {
+    ortModule = await import("onnxruntime-node");
+    return ortModule;
+  } catch (err) {
+    ortLoadFailed = true;
+    console.error("[ML] onnxruntime-node unavailable:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
 async function getRegressorSession(): Promise<ort.InferenceSession | null> {
   if (regressorSession) return regressorSession;
 
+  const ort = await getOrt();
   const modelPath = path.join(MODELS_DIR, "gpa_regressor.onnx");
-  if (!fs.existsSync(modelPath)) {
-    console.warn("[ML] GPA regressor ONNX model not found at", modelPath);
+  if (!ort || !fs.existsSync(modelPath)) {
+    if (!fs.existsSync(modelPath)) {
+      console.warn("[ML] GPA regressor ONNX model not found at", modelPath);
+    }
     return null;
   }
 
@@ -29,9 +52,12 @@ async function getRegressorSession(): Promise<ort.InferenceSession | null> {
 async function getClassifierSession(): Promise<ort.InferenceSession | null> {
   if (classifierSession) return classifierSession;
 
+  const ort = await getOrt();
   const modelPath = path.join(MODELS_DIR, "risk_classifier.onnx");
-  if (!fs.existsSync(modelPath)) {
-    console.warn("[ML] Risk classifier ONNX model not found at", modelPath);
+  if (!ort || !fs.existsSync(modelPath)) {
+    if (!fs.existsSync(modelPath)) {
+      console.warn("[ML] Risk classifier ONNX model not found at", modelPath);
+    }
     return null;
   }
 
@@ -85,12 +111,13 @@ export async function runPrediction(
   ]);
 
   // Try ONNX models first
-  const [regSession, clsSession] = await Promise.all([
+  const [ort, regSession, clsSession] = await Promise.all([
+    getOrt(),
     getRegressorSession(),
     getClassifierSession(),
   ]);
 
-  if (regSession && clsSession) {
+  if (ort && regSession && clsSession) {
     try {
       const inputName = regSession.inputNames[0];
       const tensor = new ort.Tensor("float32", features, [1, 7]);

@@ -138,7 +138,7 @@ def export_to_onnx(regression_results, classification_results, label_encoder):
 
     # Export Gradient Boosting Classifier
     gb_model = classification_results["gradient_boosting"]["model"]
-    onx_cls = to_onnx(gb_model, initial_types=initial_type, target_opset=15)  # type: ignore
+    onx_cls = to_onnx(gb_model, initial_types=initial_type, target_opset=15, options={"zipmap": False})  # type: ignore
     cls_path = os.path.join(MODELS_DIR, "risk_classifier.onnx")
     with open(cls_path, "wb") as f:
         f.write(onx_cls.SerializeToString())
